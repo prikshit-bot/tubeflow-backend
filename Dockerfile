@@ -1,11 +1,15 @@
-FROM python:3.10
+FROM python:3.10-slim
+
+RUN apt-get update && apt-get install -y \
+    curl \
+    ffmpeg \
+    && curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+COPY . .
 
-COPY . /app
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN apt-get update && apt-get install -y nodejs npm
-
-RUN pip install -r requirements.txt
-
-CMD gunicorn -w 4 -b 0.0.0.0:$PORT app:app
+CMD ["sh", "-c", "gunicorn -w 2 -b 0.0.0.0:$PORT --log-level debug app:app"]
